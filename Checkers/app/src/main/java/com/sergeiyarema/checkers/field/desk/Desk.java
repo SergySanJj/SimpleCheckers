@@ -1,7 +1,7 @@
 package com.sergeiyarema.checkers.field.desk;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
+import com.sergeiyarema.checkers.field.Coords;
 import com.sergeiyarema.checkers.field.Drawable;
 
 public class Desk implements Drawable {
@@ -9,9 +9,6 @@ public class Desk implements Drawable {
     private int cellSize;
     private Cell[][] cells;
 
-    private int black = Color.rgb(50, 50, 50);
-    private int white = Color.WHITE;
-    private int activeColor = Color.rgb(10, 250, 20);
 
     public Desk(int fieldSize) {
         this.fieldSize = fieldSize;
@@ -23,9 +20,9 @@ public class Desk implements Drawable {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
                 if ((i + j) % 2 == 0) {
-                    cells[j][i] = new Cell(white, activeColor);
+                    cells[j][i] = new Cell(CellColor.WHITE);
                 } else
-                    cells[j][i] = new Cell(black, activeColor);
+                    cells[j][i] = new Cell(CellColor.BLACK);
             }
         }
     }
@@ -35,6 +32,7 @@ public class Desk implements Drawable {
         cellSize = canvas.getWidth() / fieldSize;
         drawGrid(fieldSize, fieldSize, canvas);
     }
+
 
     private void drawGrid(int columns, int rows, Canvas canvas) {
         for (int i = 0; i < rows; i++) {
@@ -49,5 +47,29 @@ public class Desk implements Drawable {
         canvas.drawRect(x * cellSize, y * cellSize,
                 x * cellSize + cellSize, y * cellSize + cellSize,
                 cell.getPaint());
+    }
+
+    public Cell getCell(float x, float y) {
+        Coords coords = Coords.toCoords(x, y, fieldSize, cellSize);
+
+        if (coords == null)
+            return null;
+        return getCell(coords);
+    }
+
+    public Cell getCell(Coords coords) {
+        return cells[coords.x][coords.y];
+    }
+
+    public int getCellSize() {
+        return cellSize;
+    }
+
+    public void unselect() {
+        for (Cell[] cellRow : cells) {
+            for (Cell cell : cellRow) {
+                cell.setCurrentState(CellState.IDLE);
+            }
+        }
     }
 }

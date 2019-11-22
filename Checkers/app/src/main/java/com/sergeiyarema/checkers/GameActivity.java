@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
-
-
 public class GameActivity extends Activity {
     private GameView gameView;
 

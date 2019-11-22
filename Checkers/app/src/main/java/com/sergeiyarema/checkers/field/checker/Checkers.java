@@ -1,6 +1,8 @@
 package com.sergeiyarema.checkers.field.checker;
 
 import android.graphics.Canvas;
+
+import com.sergeiyarema.checkers.field.Coords;
 import com.sergeiyarema.checkers.field.Drawable;
 
 public class Checkers implements Drawable {
@@ -60,5 +62,66 @@ public class Checkers implements Drawable {
         canvas.drawCircle(cx, cy, checkerSize, checker.getPaint());
     }
 
+    public Checker getChecker(float x, float y) {
+        Coords coords = Coords.toCoords(x, y, fieldSize, cellSize);
+        if (coords == null)
+            return null;
+        return checkers[coords.y][coords.x];
+    }
 
+    public Checker getChecker(int x, int y) {
+        return checkers[y][x];
+    }
+
+    public Coords find(Checker checker) {
+        for (int i = 0; i < fieldSize; i++) {
+            for (int j = 0; j < fieldSize; j++) {
+                if (checkers[i][j] == null)
+                    continue;
+                if (checkers[i][j].equals(checker))
+                    return new Coords(j, i);
+            }
+        }
+        return null;
+    }
+
+    public void remove(int x, int y) {
+        checkers[y][x] = null;
+    }
+
+    public boolean move(Checker checker, int x, int y) {
+        boolean haveBeaten = false;
+        Coords found = find(checker);
+        if (found != null)
+            haveBeaten = beat(found.x, found.y, x, y);
+        checkers[y][x] = checker;
+        if (found != null) {
+            remove(found.x, found.y);
+        }
+        return haveBeaten;
+    }
+
+    public boolean beat(int xStart, int yStart,
+                        int xEnd, int yEnd) {
+        boolean haveBeaten = false;
+        int xDir = xEnd - xStart;
+        xDir = xDir / Math.abs(xDir);
+        int yDir = yEnd - yStart;
+        yDir = yDir / Math.abs(yDir);
+//        Log.println(Log.DEBUG, "beat", xStart + " " + yStart, )
+        int xCurr = xStart;
+        int yCurr = yStart;
+        while (xEnd - xCurr != 0) {
+            xCurr += xDir;
+            yCurr += yDir;
+            if (checkers[yCurr][xCurr] != null)
+                haveBeaten = true;
+            checkers[yCurr][xCurr] = null;
+        }
+        return haveBeaten;
+    }
+
+    public int getCheckerSize() {
+        return checkerSize;
+    }
 }

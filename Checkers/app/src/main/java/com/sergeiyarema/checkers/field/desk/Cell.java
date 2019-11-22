@@ -1,23 +1,33 @@
 package com.sergeiyarema.checkers.field.desk;
 
+import android.graphics.Color;
 import android.graphics.Paint;
 
 
 public class Cell {
+
+
+    private CellColor cellColor;
     private int colorIdle;
-    private int colorActive;
+    private int colorActive = Color.rgb(10, 250, 20);
     private Paint paint;
     private CellState currentState = CellState.IDLE;
+
+    private static int black = Color.rgb(50, 50, 50);
+    private static int white = Color.WHITE;
 
     public Cell() {
     }
 
-    public Cell(int colorIdle, int colorActive) {
-        this.colorIdle = colorIdle;
-        this.colorActive = colorActive;
-
+    public Cell(CellColor color) {
+        cellColor = color;
         this.paint = new Paint();
-        this.paint.setColor(this.colorIdle);
+
+        if (color == CellColor.BLACK) {
+            setColorIdle(black);
+        } else if (color == CellColor.WHITE) {
+            setColorIdle(white);
+        }
     }
 
     public int getColorIdle() {
@@ -44,5 +54,13 @@ public class Cell {
         } else if (currentState == CellState.ACTIVE) {
             paint.setColor(colorActive);
         }
+    }
+
+    public CellColor getCellColor() {
+        return cellColor;
+    }
+
+    public void setCellColor(CellColor cellColor) {
+        this.cellColor = cellColor;
     }
 }
