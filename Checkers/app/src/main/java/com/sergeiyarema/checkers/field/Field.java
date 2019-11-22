@@ -39,31 +39,39 @@ public class Field implements Drawable {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void activate(float x, float y) {
+        Coords coords = Coords.toCoords(x, y, fieldSize, desk.getCellSize());
+        if (coords == null)
+            return;
+
         if (selected == null) {
-            Cell cell = desk.getCell(x, y);
-            Checker checker = checkers.getChecker(x, y);
-            Coords coords = checkers.find(checker);
-            if (cell != null && checker != null) {
-                if (cell.getCellColor() == CellColor.BLACK) {
-                    if (checker.getColor().equals(gameState)) {
-                        cell.setCurrentState(CellState.ACTIVE);
-                        activateAvailable(coords.x, coords.y, checker);
-                        selected = checker;
-                    }
-                }
-            }
+            trySelect(coords);
         } else {
-            Coords coords = Coords.toCoords(x, y, fieldSize, desk.getCellSize());
-            if (coords == null)
-                return;
             for (Coords available : availableCoords) {
                 if (coords.equals(available)) {
                     boolean beaten = checkers.move(selected, coords.x, coords.y);
 
                     reverseState();
+
+                    break;
                 }
             }
             unselectAll();
+        }
+        updateQueens();
+    }
+
+    private void trySelect(Coords coords) {
+        Cell cell = desk.getCell(coords);
+        Checker checker = checkers.getChecker(coords);
+
+        if (cell != null && checker != null) {
+            if (cell.getCellColor() == CellColor.BLACK) {
+                if (checker.getColor().equals(gameState)) {
+                    cell.setCurrentState(CellState.ACTIVE);
+                    activateAvailable(coords.x, coords.y, checker);
+                    selected = checker;
+                }
+            }
         }
     }
 
@@ -97,11 +105,39 @@ public class Field implements Drawable {
                 tryMove(x, y, 1, 1, checker);
             }
 
-            for (Coords coords : availableCoords) {
-                desk.getCell(coords).setCurrentState(CellState.ACTIVE);
-            }
+
         } else if (checker.getState() == CheckerState.QUEEN) {
-            // todo
+            moveInVector(x, y, 1, 1, checker);
+            moveInVector(x, y, 1, -1, checker);
+            moveInVector(x, y, -1, 1, checker);
+            moveInVector(x, y, -1, -1, checker);
+        }
+
+        for (Coords coords : availableCoords) {
+            desk.getCell(coords).setCurrentState(CellState.ACTIVE);
+        }
+    }
+
+    private void moveInVector(int x, int y, int vx, int vy, Checker current) {
+        int xCurr = x;
+        int yCurr = y;
+        while (border(x + vx) && border(y + vy)) {
+            x = x + vx;
+            y = y + vy;
+            Checker other = checkers.getChecker(x, y);
+            if (other != null) {
+                if (other.getColor() == current.getColor())
+                    return;
+                if (border(x + vx) && border(y + vy)) {
+                    other = checkers.getChecker(x + vx, y + vy);
+                    if (other == null) {
+                        availableCoords.add(new Coords(x + vx, y + vy));
+                    }
+                    return;
+                }
+            } else {
+                availableCoords.add(new Coords(x, y));
+            }
         }
     }
 
@@ -135,7 +171,15 @@ public class Field implements Drawable {
         }
     }
 
+    private void updateQueens() {
+        checkers.updateQueens();
+    }
+
     private boolean border(int x, int dx) {
-        return (x + dx >= 0) && (x + dx < fieldSize);
+        return border(x + dx);
+    }
+
+    private boolean border(int x) {
+        return (x >= 0) && x < fieldSize;
     }
 }

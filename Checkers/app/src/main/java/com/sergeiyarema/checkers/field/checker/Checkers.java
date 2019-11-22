@@ -2,6 +2,9 @@ package com.sergeiyarema.checkers.field.checker;
 
 import android.graphics.Canvas;
 
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.util.Log;
 import com.sergeiyarema.checkers.field.Coords;
 import com.sergeiyarema.checkers.field.Drawable;
 
@@ -10,10 +13,13 @@ public class Checkers implements Drawable {
     private int checkerSize;
     private int fieldSize;
     private Checker[][] checkers;
+    private Paint queenPaint;
 
     public Checkers(int fieldSize) {
         this.fieldSize = fieldSize;
         initCheckers();
+        queenPaint = new Paint();
+        queenPaint.setColor(Color.rgb(0, 0, 0));
     }
 
     private void initCheckers() {
@@ -59,7 +65,10 @@ public class Checkers implements Drawable {
     private void drawChecker(int row, int column, Checker checker, Canvas canvas) {
         int cx = column * cellSize + cellSize / 2;
         int cy = row * cellSize + cellSize / 2;
-        canvas.drawCircle(cx, cy, checkerSize, checker.getPaint());
+        canvas.drawCircle(cx, cy, checkerSize, checker.updatePaint());
+        if (checker.getState() == CheckerState.QUEEN) {
+            canvas.drawCircle(cx, cy, (int) (checkerSize * 0.5), queenPaint);
+        }
     }
 
     public Checker getChecker(float x, float y) {
@@ -71,6 +80,10 @@ public class Checkers implements Drawable {
 
     public Checker getChecker(int x, int y) {
         return checkers[y][x];
+    }
+
+    public Checker getChecker(Coords coords) {
+        return checkers[coords.y][coords.x];
     }
 
     public Coords find(Checker checker) {
@@ -123,5 +136,28 @@ public class Checkers implements Drawable {
 
     public int getCheckerSize() {
         return checkerSize;
+    }
+
+    public void updateQueens() {
+        // BLACKS
+        for (Checker checker : checkers[0]) {
+            if (checker == null)
+                continue;
+            if (checker.getColor() == CheckerColor.BLACK) {
+                checker.setState(CheckerState.QUEEN);
+                Log.println(Log.DEBUG, "QUEEN", "QUEEN");
+            }
+        }
+
+        // WHITES
+        for (Checker checker : checkers[fieldSize - 1]) {
+            if (checker == null)
+                continue;
+            if (checker.getColor() == CheckerColor.WHITE) {
+                checker.setState(CheckerState.QUEEN);
+                Log.println(Log.DEBUG, "QUEEN", "QUEEN");
+
+            }
+        }
     }
 }
