@@ -1,57 +1,54 @@
 package com.sergeiyarema.checkers;
 
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.*;
-import android.graphics.Color;
-import android.os.Build;
+import android.view.MotionEvent;
 import android.view.View;
-import androidx.annotation.RequiresApi;
+import com.sergeiyarema.checkers.field.Field;
 
 public class GameView extends View {
-
-    private long left = 10;
-    private long top = 10;
-    private int fieldSize = 10;
-    private int cellSize;
+    private int fieldSize = 8;
+    private Field field;
 
     private Context context;
-    private Cell blackCell;
-    private Cell whiteCell;
 
-    public GameView(Context context) {
+
+    public GameView(final Context context) {
         super(context);
         this.context = context;
+        field = new Field(fieldSize);
 
-        int black = Color.BLACK;
-        int white = Color.WHITE;
-        cellSize = getWidth();
-        blackCell = new Cell(cellSize, black);
-        whiteCell = new Cell(cellSize, white);
-    }
+        setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
 
-    private void drawGrid(int columns, int rows, Canvas canvas) {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                if ((i + j) % 2 == 0) {
-                    drawCell(blackCell, j, i, canvas);
-                } else
-                    drawCell(whiteCell, j, i, canvas);
+                if(event.getAction() == MotionEvent.ACTION_UP){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setTitle("Важное сообщение!")
+                            .setMessage("Покормите кота!")
+                            .setCancelable(false)
+                            .setNegativeButton("ОК, иду на кухню",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            dialog.cancel();
+                                        }
+                                    });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+                return true;
             }
-        }
+        });
     }
 
-    private void drawCell(Cell cell, int x, int y, Canvas canvas) {
-
-        canvas.drawRect(x * cell.getSize(), y * cell.getSize(),
-                x * cell.getSize() + cell.getSize(), y * cell.getSize() + cell.getSize(),
-                cell.getPaint());
-    }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        drawGrid(fieldSize, fieldSize, canvas);
-
+        field.draw(canvas);
     }
+
+
 }
