@@ -15,17 +15,25 @@ import java.util.List;
 import java.util.Map;
 
 public class Checkers implements Drawable {
+    public static final double CHECKER_BORDER_MULTIPLIER = 1.15;
+    public static final double QUEEN_INNER_CIRCLE_MULTIPLIER = 0.7;
+    public static final double CHECKER_RADIUS_MULTIPLIER = 0.35;
     private int cellSize;
     private int checkerSize;
     private int fieldSize;
     private Checker[][] checkersTable;
     private Paint queenPaint;
 
+    private Checkers() {
+        queenPaint = new Paint();
+        queenPaint.setColor(Color.rgb(50, 50, 50));
+    }
+
     public Checkers(int fieldSize) {
         this.fieldSize = fieldSize;
         initCheckers();
         queenPaint = new Paint();
-        queenPaint.setColor(Color.rgb(0, 0, 0));
+        queenPaint.setColor(Color.rgb(50, 50, 50));
     }
 
     private void initCheckers() {
@@ -57,7 +65,7 @@ public class Checkers implements Drawable {
     @Override
     public void draw(Canvas canvas) {
         cellSize = canvas.getWidth() / fieldSize;
-        checkerSize = (int) (cellSize * 0.4);
+        checkerSize = (int) (cellSize * CHECKER_RADIUS_MULTIPLIER);
         for (int i = 0; i < fieldSize; i++) {
             for (int j = 0; j < fieldSize; j++) {
                 if ((j + i) % 2 == 1 &&
@@ -71,9 +79,10 @@ public class Checkers implements Drawable {
     private void drawChecker(int row, int column, Checker checker, Canvas canvas) {
         int cx = column * cellSize + cellSize / 2;
         int cy = row * cellSize + cellSize / 2;
+        canvas.drawCircle(cx, cy, (float) (checkerSize * CHECKER_BORDER_MULTIPLIER), queenPaint);
         canvas.drawCircle(cx, cy, checkerSize, checker.updatePaint());
         if (checker.getState() == CheckerState.QUEEN) {
-            canvas.drawCircle(cx, cy, (int) (checkerSize * 0.7), queenPaint);
+            canvas.drawCircle(cx, cy, (int) (checkerSize * QUEEN_INNER_CIRCLE_MULTIPLIER), queenPaint);
         }
     }
 
@@ -85,7 +94,9 @@ public class Checkers implements Drawable {
     }
 
     public Checker getChecker(int x, int y) {
-        return checkersTable[y][x];
+        if (border(x) && border(y))
+            return checkersTable[y][x];
+        return null;
     }
 
     public Checker getChecker(Coords coords) {
@@ -324,5 +335,47 @@ public class Checkers implements Drawable {
                 return false;
         }
         return true;
+    }
+
+    public static final int NONE = 0;
+    public static final int WNORMAL = 1;
+    public static final int BNORMAL = 2;
+    public static final int WQUEEN = 3;
+    public static final int BQUEEN = 4;
+
+
+    public static Checkers generateFromTable(int[][] table) {
+        Checkers res = new Checkers();
+        res.fieldSize = table.length;
+        res.checkersTable = new Checker[table.length][table.length];
+        for (int i = 0; i < table.length; i++) {
+            for (int j = 0; j < table.length; j++) {
+                Checker newChecker = null;
+                switch (table[i][j]) {
+                    case NONE:
+                        break;
+                    case BNORMAL:
+                        newChecker = new Checker(CheckerColor.BLACK);
+                        break;
+                    case WNORMAL:
+                        newChecker = new Checker(CheckerColor.WHITE);
+                        break;
+                    case BQUEEN:
+                        newChecker = new Checker(CheckerColor.BLACK);
+                        newChecker.setState(CheckerState.QUEEN);
+                        break;
+                    case WQUEEN:
+                        newChecker = new Checker(CheckerColor.WHITE);
+                        newChecker.setState(CheckerState.QUEEN);
+                        break;
+                    default:
+                        break;
+                }
+                if (newChecker != null) {
+                    res.checkersTable[i][j] = newChecker;
+                }
+            }
+        }
+        return res;
     }
 }

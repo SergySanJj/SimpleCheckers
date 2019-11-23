@@ -10,12 +10,13 @@ public class Checker {
 
     private static int errorColor = Color.rgb(0, 250, 0);
 
-    private static final int whiteNormal = Color.rgb(200, 200, 200);
-    private static final int blackNormal = Color.rgb(230, 20, 20);
+    public static final int whiteNormal = Color.rgb(200, 200, 200);
+    public static final int blackNormal = Color.rgb(230, 20, 20);
 
     Checker(CheckerColor checkerColor) {
         color = checkerColor;
         paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
     }
 
     public CheckerColor getColor() {
@@ -42,7 +43,6 @@ public class Checker {
             default:
                 paint.setColor(errorColor);
         }
-
         return paint;
     }
 }
