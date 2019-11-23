@@ -56,7 +56,7 @@ public class Checkers implements Drawable {
     @Override
     public void draw(Canvas canvas) {
         cellSize = canvas.getWidth() / fieldSize;
-        checkerSize = (int) (cellSize * 0.2);
+        checkerSize = (int) (cellSize * 0.4);
         for (int i = 0; i < fieldSize; i++) {
             for (int j = 0; j < fieldSize; j++) {
                 if ((j + i) % 2 == 1 &&
@@ -72,7 +72,7 @@ public class Checkers implements Drawable {
         int cy = row * cellSize + cellSize / 2;
         canvas.drawCircle(cx, cy, checkerSize, checker.updatePaint());
         if (checker.getState() == CheckerState.QUEEN) {
-            canvas.drawCircle(cx, cy, (int) (checkerSize * 0.5), queenPaint);
+            canvas.drawCircle(cx, cy, (int) (checkerSize * 0.7), queenPaint);
         }
     }
 

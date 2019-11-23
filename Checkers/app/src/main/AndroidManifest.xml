@@ -10,6 +10,7 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning">
+
         <activity android:name=".GameActivity"
                   android:screenOrientation="portrait"
                   android:configChanges="keyboardHidden|orientation|screenSize"
@@ -20,6 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
