@@ -22,19 +22,29 @@ public class GameView extends View {
     public GameView(final Context context) {
         super(context);
         this.context = context;
-        field = new Field(fieldSize);
+        field = new Field(fieldSize, this);
 
+
+        View c = this;
         setOnTouchListener(new View.OnTouchListener() {
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     field.activate(event.getX(), event.getY());
-
-                    updateView();
                 }
                 return true;
             }
         });
+
+        final Thread updater = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    updateView();
+                }
+            }
+        });
+        updater.start();
     }
 
     public void updateView() {

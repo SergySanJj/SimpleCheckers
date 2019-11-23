@@ -8,11 +8,16 @@ import android.util.Log;
 import com.sergeiyarema.checkers.field.Coords;
 import com.sergeiyarema.checkers.field.Drawable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Checkers implements Drawable {
     private int cellSize;
     private int checkerSize;
     private int fieldSize;
-    private Checker[][] checkers;
+    private Checker[][] checkersTable;
     private Paint queenPaint;
 
     public Checkers(int fieldSize) {
@@ -23,7 +28,7 @@ public class Checkers implements Drawable {
     }
 
     private void initCheckers() {
-        checkers = new Checker[fieldSize][fieldSize];
+        checkersTable = new Checker[fieldSize][fieldSize];
 
         initWhites();
         initBlacks();
@@ -44,7 +49,7 @@ public class Checkers implements Drawable {
     private void initRow(int row, CheckerColor color) {
         for (int i = 0; i < fieldSize; i++) {
             if ((row + i) % 2 == 1)
-                checkers[row][i] = new Checker(color);
+                checkersTable[row][i] = new Checker(color);
         }
     }
 
@@ -55,8 +60,8 @@ public class Checkers implements Drawable {
         for (int i = 0; i < fieldSize; i++) {
             for (int j = 0; j < fieldSize; j++) {
                 if ((j + i) % 2 == 1 &&
-                        checkers[i][j] != null) {
-                    drawChecker(i, j, checkers[i][j], canvas);
+                        checkersTable[i][j] != null) {
+                    drawChecker(i, j, checkersTable[i][j], canvas);
                 }
             }
         }
@@ -75,23 +80,23 @@ public class Checkers implements Drawable {
         Coords coords = Coords.toCoords(x, y, fieldSize, cellSize);
         if (coords == null)
             return null;
-        return checkers[coords.y][coords.x];
+        return checkersTable[coords.y][coords.x];
     }
 
     public Checker getChecker(int x, int y) {
-        return checkers[y][x];
+        return checkersTable[y][x];
     }
 
     public Checker getChecker(Coords coords) {
-        return checkers[coords.y][coords.x];
+        return checkersTable[coords.y][coords.x];
     }
 
     public Coords find(Checker checker) {
         for (int i = 0; i < fieldSize; i++) {
             for (int j = 0; j < fieldSize; j++) {
-                if (checkers[i][j] == null)
+                if (checkersTable[i][j] == null)
                     continue;
-                if (checkers[i][j].equals(checker))
+                if (checkersTable[i][j].equals(checker))
                     return new Coords(j, i);
             }
         }
@@ -99,7 +104,7 @@ public class Checkers implements Drawable {
     }
 
     public void remove(int x, int y) {
-        checkers[y][x] = null;
+        checkersTable[y][x] = null;
     }
 
     public boolean move(Checker checker, int x, int y) {
@@ -107,7 +112,7 @@ public class Checkers implements Drawable {
         Coords found = find(checker);
         if (found != null)
             haveBeaten = beat(found.x, found.y, x, y);
-        checkers[y][x] = checker;
+        checkersTable[y][x] = checker;
         if (found != null) {
             remove(found.x, found.y);
         }
@@ -127,9 +132,9 @@ public class Checkers implements Drawable {
         while (xEnd - xCurr != 0) {
             xCurr += xDir;
             yCurr += yDir;
-            if (checkers[yCurr][xCurr] != null)
+            if (checkersTable[yCurr][xCurr] != null)
                 haveBeaten = true;
-            checkers[yCurr][xCurr] = null;
+            checkersTable[yCurr][xCurr] = null;
         }
         return haveBeaten;
     }
@@ -140,7 +145,7 @@ public class Checkers implements Drawable {
 
     public void updateQueens() {
         // BLACKS
-        for (Checker checker : checkers[0]) {
+        for (Checker checker : checkersTable[0]) {
             if (checker == null)
                 continue;
             if (checker.getColor() == CheckerColor.BLACK) {
@@ -150,7 +155,7 @@ public class Checkers implements Drawable {
         }
 
         // WHITES
-        for (Checker checker : checkers[fieldSize - 1]) {
+        for (Checker checker : checkersTable[fieldSize - 1]) {
             if (checker == null)
                 continue;
             if (checker.getColor() == CheckerColor.WHITE) {
@@ -159,5 +164,150 @@ public class Checkers implements Drawable {
 
             }
         }
+    }
+
+    public List<Coords> buildAvailable(Checker checker) {
+        Coords coords = find(checker);
+        int x = coords.x;
+        int y = coords.y;
+        List<Coords> res = new ArrayList<>();
+        if (checker.getState() == CheckerState.NORMAL) {
+            if (checker.getColor() == CheckerColor.BLACK) {
+                tryMove(x, y, -1, -1, checker, res);
+                tryMove(x, y, 1, -1, checker, res);
+
+                tryBeat(x, y, -1, 1, checker, res);
+                tryBeat(x, y, 1, 1, checker, res);
+            } else {
+                tryBeat(x, y, -1, -1, checker, res);
+                tryBeat(x, y, 1, -1, checker, res);
+
+                tryMove(x, y, -1, 1, checker, res);
+                tryMove(x, y, 1, 1, checker, res);
+            }
+
+        } else if (checker.getState() == CheckerState.QUEEN) {
+            moveInVector(x, y, 1, 1, checker, res);
+            moveInVector(x, y, 1, -1, checker, res);
+            moveInVector(x, y, -1, 1, checker, res);
+            moveInVector(x, y, -1, -1, checker, res);
+        }
+
+        return res;
+    }
+
+    private void moveInVector(int x, int y, int vx, int vy, Checker current, List<Coords> res) {
+        while (border(x + vx) && border(y + vy)) {
+            x = x + vx;
+            y = y + vy;
+            Checker other = getChecker(x, y);
+            if (other != null) {
+                if (other.getColor() == current.getColor())
+                    return;
+                if (border(x + vx) && border(y + vy)) {
+                    other = getChecker(x + vx, y + vy);
+                    if (other == null) {
+                        res.add(new Coords(x + vx, y + vy));
+                    }
+                    return;
+                }
+            } else {
+                res.add(new Coords(x, y));
+            }
+        }
+    }
+
+    private void beatInVector(int x, int y, int vx, int vy, Checker current, List<Coords> res) {
+        while (border(x + vx) && border(y + vy)) {
+            x = x + vx;
+            y = y + vy;
+            Checker other = getChecker(x, y);
+            if (other != null) {
+                if (other.getColor() == current.getColor())
+                    return;
+                if (border(x + vx) && border(y + vy)) {
+                    other = getChecker(x + vx, y + vy);
+                    if (other == null) {
+                        res.add(new Coords(x + vx, y + vy));
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    private void tryMove(int x, int y, int dx, int dy, Checker current, List<Coords> res) {
+        if (border(x, dx) && border(y, dy)) {
+            Checker checkerOther = getChecker(x + dx, y + dy);
+            if (checkerOther == null) {
+                res.add(new Coords(x + dx, y + dy));
+            } else if (checkerOther.getColor() != current.getColor()
+                    && border(x, 2 * dx)
+                    && border(y, 2 * dy)) {
+                checkerOther = getChecker(x + 2 * dx, y + 2 * dy);
+                if (checkerOther == null) {
+                    res.add(new Coords(x + 2 * dx, y + 2 * dy));
+                }
+            }
+        }
+    }
+
+    public Map<Checker, List<Coords>> getAvailableListByColor(CheckerColor color) {
+        Map<Checker, List<Coords>> res = new HashMap<>();
+        for (Checker[] row : checkersTable) {
+            for (Checker checker : row) {
+                if (checker == null)
+                    continue;
+                if (checker.getColor() == color) {
+                    List<Coords> availableForThisChecker = buildAvailable(checker);
+                    res.put(checker, availableForThisChecker);
+                }
+            }
+        }
+        return res;
+    }
+
+    private void tryBeat(int x, int y, int dx, int dy, Checker current, List<Coords> res) {
+        if (border(x, dx) && border(y, dy)) {
+            Checker checkerOther = getChecker(x + dx, y + dy);
+            if (checkerOther != null && checkerOther.getColor() != current.getColor()
+                    && border(x, 2 * dx)
+                    && border(y, 2 * dy)) {
+                checkerOther = getChecker(x + 2 * dx, y + 2 * dy);
+                if (checkerOther == null) {
+                    res.add(new Coords(x + 2 * dx, y + 2 * dy));
+                }
+            }
+        }
+    }
+
+    private boolean border(int x, int dx) {
+        return border(x + dx);
+    }
+
+    private boolean border(int x) {
+        return (x >= 0) && x < fieldSize;
+    }
+
+    public List<Coords> canBeat(Checker checker) {
+        List<Coords> res = new ArrayList<>();
+        Coords coords = find(checker);
+        int x = coords.x;
+        int y = coords.y;
+        if (checker.getState() == CheckerState.NORMAL) {
+            if (checker.getColor() == CheckerColor.BLACK) {
+                tryBeat(x, y, -1, 1, checker, res);
+                tryBeat(x, y, 1, 1, checker, res);
+            } else {
+                tryBeat(x, y, -1, -1, checker, res);
+                tryBeat(x, y, 1, -1, checker, res);
+            }
+        } else {
+            beatInVector(x, y, 1, 1, checker, res);
+            beatInVector(x, y, 1, -1, checker, res);
+            beatInVector(x, y, -1, 1, checker, res);
+            beatInVector(x, y, -1, -1, checker, res);
+        }
+        return res;
     }
 }

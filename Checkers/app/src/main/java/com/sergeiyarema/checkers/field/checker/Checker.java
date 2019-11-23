@@ -44,7 +44,7 @@ public class Checker {
             default:
                 paint.setColor(errorColor);
         }
-        
+
         return paint;
     }
 }

@@ -2,21 +2,24 @@ package com.sergeiyarema.checkers.field;
 
 import android.graphics.Canvas;
 import android.os.Build;
+import android.util.Log;
+import android.view.View;
 import androidx.annotation.RequiresApi;
+import com.sergeiyarema.checkers.BotLogic;
 import com.sergeiyarema.checkers.field.checker.Checker;
 import com.sergeiyarema.checkers.field.checker.CheckerColor;
-import com.sergeiyarema.checkers.field.checker.CheckerState;
 import com.sergeiyarema.checkers.field.checker.Checkers;
 import com.sergeiyarema.checkers.field.desk.Cell;
 import com.sergeiyarema.checkers.field.desk.CellColor;
 import com.sergeiyarema.checkers.field.desk.CellState;
 import com.sergeiyarema.checkers.field.desk.Desk;
 
-import java.lang.annotation.AnnotationTypeMismatchException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Field implements Drawable {
+    private View caller;
     private int fieldSize;
     private Desk desk;
     private Checkers checkers;
@@ -24,9 +27,13 @@ public class Field implements Drawable {
     private Checker selected;
     private CheckerColor gameState = CheckerColor.BLACK;
     private List<Coords> availableCoords = new ArrayList<>();
+    private static final CheckerColor playerSide = CheckerColor.BLACK;
+    private boolean playerBeatRow = false;
+    private Coords lastPosition;
 
-    public Field(int fieldSize) {
+    public Field(int fieldSize, View caller) {
         this.fieldSize = fieldSize;
+        this.caller = caller;
         desk = new Desk(fieldSize);
         checkers = new Checkers(fieldSize);
     }
@@ -39,47 +46,130 @@ public class Field implements Drawable {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void activate(float x, float y) {
-        Coords coords = Coords.toCoords(x, y, fieldSize, desk.getCellSize());
-        if (coords == null)
-            return;
+        if (gameState == playerSide) {
+            Coords tapCoords = Coords.toCoords(x, y, fieldSize, desk.getCellSize());
 
-        if (selected == null) {
-            trySelect(coords);
-        } else {
-            for (Coords available : availableCoords) {
-                if (coords.equals(available)) {
-                    boolean beaten = checkers.move(selected, coords.x, coords.y);
+            if (selected == null) {
+                trySelect(tapCoords);
+                // update view
+                caller.invalidate();
+            } else {
 
+                if (coordsInAvailableCells(tapCoords)) {
+                    playerBeatRow = doPlayerStep(tapCoords);
+                    updateQueens();
+                    lastPosition = checkers.find(selected);
+
+                    if (playerBeatRow && canBeatMore(lastPosition)) {
+                        playerBeatRow = true;
+                        trySelectBeatable(lastPosition);
+                    } else {
+                        playerBeatRow = false;
+                        unselectAll();
+                    }
+                }else {
+                    unselectAll();
+                    caller.invalidate();
+                    return;
+                }
+
+                // update view
+                caller.invalidate();
+
+                if (!playerBeatRow) {
+                    unselectAll();
                     reverseState();
-
-                    break;
+                    startBotTurn();
+                    reverseState();
                 }
             }
-            unselectAll();
         }
-        updateQueens();
+    }
+
+    private void startBotTurn() {
+        boolean botBeatRow = false;
+        Coords checkerCoords = BotLogic.chooseChecker(checkers, other(playerSide), 1000);
+        Checker checkerBot = checkers.getChecker(checkerCoords);
+        trySelect(checkerCoords);
+        // update view
+        caller.invalidate();
+        Coords moveCoords = BotLogic.chooseMove(checkers, checkerBot, 1000);
+        // todo check null on no checkers steps
+        botBeatRow = checkers.move(checkerBot, moveCoords.x, moveCoords.y);
+        unselectAll();
+        // update view
+        caller.invalidate();
+
+        while (botBeatRow) {
+            unselectAll();
+            trySelectBeatable(moveCoords);
+            // update view
+            caller.invalidate();
+            moveCoords = BotLogic.chooseMove(checkers, checkerBot, 1000);
+            if (moveCoords != null)
+                botBeatRow = checkers.move(checkerBot, moveCoords.x, moveCoords.y);
+            else botBeatRow = false;
+            // update view
+            caller.invalidate();
+        }
+    }
+
+    private boolean doPlayerStep(Coords tapCoords) {
+        boolean hasBeaten = checkers.move(selected, tapCoords.x, tapCoords.y);
+        return hasBeaten;
+    }
+
+    private boolean canBeatMore(Coords lastPosition) {
+        Checker checker = checkers.getChecker(lastPosition);
+        List<Coords> beatable = checkers.canBeat(checker);
+        return !beatable.isEmpty();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private boolean coordsInAvailableCells(Coords tapCoords) {
+        for (Coords coords : availableCoords) {
+            if (tapCoords.equals(coords))
+                return true;
+        }
+        return false;
     }
 
     private void trySelect(Coords coords) {
+        unselectAll();
         Cell cell = desk.getCell(coords);
         Checker checker = checkers.getChecker(coords);
 
         if (cell != null && checker != null) {
-            if (cell.getCellColor() == CellColor.BLACK) {
-                if (checker.getColor().equals(gameState)) {
-                    cell.setCurrentState(CellState.ACTIVE);
-                    activateAvailable(coords.x, coords.y, checker);
-                    selected = checker;
-                }
+            if (cell.getCellColor() == CellColor.BLACK && checker.getColor().equals(gameState)) {
+                cell.setCurrentState(CellState.ACTIVE);
+                activateAvailable(checker);
+                selected = checker;
+            }
+        }
+    }
+
+    private void trySelectBeatable(Coords coords) {
+        Cell cell = desk.getCell(coords);
+        Checker checker = checkers.getChecker(coords);
+
+        if (cell != null && checker != null) {
+            if (cell.getCellColor() == CellColor.BLACK && checker.getColor().equals(gameState)) {
+                cell.setCurrentState(CellState.ACTIVE);
+                activateAvailableBeatable(checker);
+                selected = checker;
             }
         }
     }
 
     public void reverseState() {
-        if (gameState == CheckerColor.BLACK)
-            gameState = CheckerColor.WHITE;
+        gameState = other(gameState);
+    }
+
+    public CheckerColor other(CheckerColor color) {
+        if (color == CheckerColor.BLACK)
+            return CheckerColor.WHITE;
         else
-            gameState = CheckerColor.BLACK;
+            return CheckerColor.BLACK;
     }
 
     public void unselectAll() {
@@ -88,98 +178,30 @@ public class Field implements Drawable {
         desk.unselect();
     }
 
-    public void activateAvailable(int x, int y, Checker checker) {
+    public void activateAvailable(Checker checker) {
         availableCoords.clear();
-        if (checker.getState() == CheckerState.NORMAL) {
-            if (checker.getColor() == CheckerColor.BLACK) {
-                tryMove(x, y, -1, -1, checker);
-                tryMove(x, y, 1, -1, checker);
-
-                tryBeat(x, y, -1, 1, checker);
-                tryBeat(x, y, 1, 1, checker);
-            } else {
-                tryBeat(x, y, -1, -1, checker);
-                tryBeat(x, y, 1, -1, checker);
-
-                tryMove(x, y, -1, 1, checker);
-                tryMove(x, y, 1, 1, checker);
-            }
-
-
-        } else if (checker.getState() == CheckerState.QUEEN) {
-            moveInVector(x, y, 1, 1, checker);
-            moveInVector(x, y, 1, -1, checker);
-            moveInVector(x, y, -1, 1, checker);
-            moveInVector(x, y, -1, -1, checker);
-        }
+        desk.unselect();
+        availableCoords = checkers.buildAvailable(checker);
 
         for (Coords coords : availableCoords) {
             desk.getCell(coords).setCurrentState(CellState.ACTIVE);
         }
     }
 
-    private void moveInVector(int x, int y, int vx, int vy, Checker current) {
-        int xCurr = x;
-        int yCurr = y;
-        while (border(x + vx) && border(y + vy)) {
-            x = x + vx;
-            y = y + vy;
-            Checker other = checkers.getChecker(x, y);
-            if (other != null) {
-                if (other.getColor() == current.getColor())
-                    return;
-                if (border(x + vx) && border(y + vy)) {
-                    other = checkers.getChecker(x + vx, y + vy);
-                    if (other == null) {
-                        availableCoords.add(new Coords(x + vx, y + vy));
-                    }
-                    return;
-                }
-            } else {
-                availableCoords.add(new Coords(x, y));
-            }
+    private void activateAvailableBeatable(Checker checker) {
+        availableCoords.clear();
+        desk.unselect();
+        availableCoords = checkers.canBeat(checker);
+
+        for (Coords coords : availableCoords) {
+            desk.getCell(coords).setCurrentState(CellState.ACTIVE);
         }
     }
 
-    private void tryMove(int x, int y, int dx, int dy, Checker current) {
-        if (border(x, dx) && border(y, dy)) {
-            Checker checkerOther = checkers.getChecker(x + dx, y + dy);
-            if (checkerOther == null) {
-                availableCoords.add(new Coords(x + dx, y + dy));
-            } else if (checkerOther.getColor() != current.getColor()
-                    && border(x, 2 * dx)
-                    && border(y, 2 * dy)) {
-                checkerOther = checkers.getChecker(x + 2 * dx, y + 2 * dy);
-                if (checkerOther == null) {
-                    availableCoords.add(new Coords(x + 2 * dx, y + 2 * dy));
-                }
-            }
-        }
-    }
-
-    private void tryBeat(int x, int y, int dx, int dy, Checker current) {
-        if (border(x, dx) && border(y, dy)) {
-            Checker checkerOther = checkers.getChecker(x + dx, y + dy);
-            if (checkerOther != null && checkerOther.getColor() != current.getColor()
-                    && border(x, 2 * dx)
-                    && border(y, 2 * dy)) {
-                checkerOther = checkers.getChecker(x + 2 * dx, y + 2 * dy);
-                if (checkerOther == null) {
-                    availableCoords.add(new Coords(x + 2 * dx, y + 2 * dy));
-                }
-            }
-        }
-    }
 
     private void updateQueens() {
         checkers.updateQueens();
     }
 
-    private boolean border(int x, int dx) {
-        return border(x + dx);
-    }
 
-    private boolean border(int x) {
-        return (x >= 0) && x < fieldSize;
-    }
 }
