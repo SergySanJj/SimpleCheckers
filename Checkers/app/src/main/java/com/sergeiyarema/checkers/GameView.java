@@ -16,7 +16,7 @@ public class GameView extends View {
     private static final int FIELD_SIZE = 8;
     private FieldController fieldController;
     private Context context;
-
+    private Thread botThread;
 
     public GameView(final Context context) {
         super(context);
@@ -28,11 +28,15 @@ public class GameView extends View {
     }
 
     private void startBotThread() {
-        Thread botThread = new Thread(new Runnable() {
+        botThread = new Thread(new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
-                fieldController.startBotCycle();
+                try {
+                    fieldController.startBotCycle();
+                } catch (Exception e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         });
         botThread.start();
@@ -67,6 +71,10 @@ public class GameView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         fieldController.draw(canvas);
+    }
+
+    public Thread getBotThread() {
+        return botThread;
     }
 }
 

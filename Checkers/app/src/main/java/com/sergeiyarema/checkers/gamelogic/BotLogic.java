@@ -36,7 +36,7 @@ public class BotLogic {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
         List<Coords> available = checkers.buildAvailable(checker);
         if (available.isEmpty())
