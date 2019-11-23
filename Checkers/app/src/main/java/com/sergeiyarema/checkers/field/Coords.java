@@ -1,8 +1,6 @@
 package com.sergeiyarema.checkers.field;
 
-import android.graphics.CornerPathEffect;
 import android.os.Build;
-import android.util.Log;
 import androidx.annotation.RequiresApi;
 
 import java.util.Objects;
@@ -23,26 +21,10 @@ public class Coords {
         return res;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Coords))
+        if (!(o instanceof Coords))
             return false;
         if (o.hashCode() == this.hashCode()) {
             return true;

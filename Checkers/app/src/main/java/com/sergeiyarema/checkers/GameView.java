@@ -23,7 +23,23 @@ public class GameView extends View {
         this.context = context;
         fieldController = new FieldController(FIELD_SIZE, this);
 
-        setOnTouchListener(new View.OnTouchListener() {
+        assignTouchListener();
+        startBotThread();
+    }
+
+    private void startBotThread() {
+        Thread botThread = new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            @Override
+            public void run() {
+                fieldController.startBotCycle();
+            }
+        });
+        botThread.start();
+    }
+
+    private void assignTouchListener() {
+        setOnTouchListener(new OnTouchListener() {
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public boolean onTouch(View v, MotionEvent event) {
                 Thread th = new Thread(new OnTouchTask(event, fieldController));
@@ -37,14 +53,6 @@ public class GameView extends View {
                 return true;
             }
         });
-
-        Thread botThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                fieldController.startBotCycle();
-            }
-        });
-        botThread.start();
     }
 
     public void updateView() {

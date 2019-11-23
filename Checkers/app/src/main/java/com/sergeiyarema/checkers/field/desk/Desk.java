@@ -49,14 +49,6 @@ public class Desk implements Drawable {
                 cell.getPaint());
     }
 
-    public Cell getCell(float x, float y) {
-        Coords coords = Coords.toCoords(x, y, fieldSize, cellSize);
-
-        if (coords == null)
-            return null;
-        return getCell(coords);
-    }
-
     public Cell getCell(Coords coords) {
         return cells[coords.x][coords.y];
     }

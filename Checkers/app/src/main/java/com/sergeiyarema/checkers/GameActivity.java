@@ -41,8 +41,7 @@ public class GameActivity extends Activity {
 
     private void startNewGame() {
         gameView = new GameView(this);
-        if (gameLayout != null)
-            gameLayout.removeAllViews();
+        gameLayout.removeAllViews();
         gameLayout.addView(gameView);
         gameView.updateView();
     }
@@ -50,10 +49,8 @@ public class GameActivity extends Activity {
     private View.OnClickListener newGameListener = new View.OnClickListener() {
         @Override
         public void onClick(final View v) {
-            switch (v.getId()) {
-                case R.id.new_game_button:
-                    startNewGame();
-                    break;
+            if (v.getId() == R.id.new_game_button) {
+                startNewGame();
             }
         }
     };

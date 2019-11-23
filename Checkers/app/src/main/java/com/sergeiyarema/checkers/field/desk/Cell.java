@@ -13,11 +13,8 @@ public class Cell {
     private Paint paint;
     private CellState currentState = CellState.IDLE;
 
-    private static int black = Color.rgb(50, 50, 50);
-    private static int white = Color.WHITE;
-
-    public Cell() {
-    }
+    private static final int black = Color.rgb(50, 50, 50);
+    private static final int white = Color.WHITE;
 
     public Cell(CellColor color) {
         cellColor = color;

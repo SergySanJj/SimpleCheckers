@@ -4,7 +4,8 @@ import android.graphics.Canvas;
 
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
+import android.os.Build;
+import androidx.annotation.RequiresApi;
 import com.sergeiyarema.checkers.field.Coords;
 import com.sergeiyarema.checkers.field.Drawable;
 
@@ -107,10 +108,11 @@ public class Checkers implements Drawable {
         checkersTable[y][x] = null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean move(Checker checker, int x, int y) {
         boolean haveBeaten = false;
         Coords found = find(checker);
-        if (found != null)
+        if (found != null && !found.equals(new Coords(x, y)))
             haveBeaten = beat(found.x, found.y, x, y);
         checkersTable[y][x] = checker;
         if (found != null) {
@@ -123,10 +125,11 @@ public class Checkers implements Drawable {
                         int xEnd, int yEnd) {
         boolean haveBeaten = false;
         int xDir = xEnd - xStart;
-        xDir = xDir / Math.abs(xDir);
         int yDir = yEnd - yStart;
+        if (xDir == 0 || yDir == 0)
+            return false;
+        xDir = xDir / Math.abs(xDir);
         yDir = yDir / Math.abs(yDir);
-//        Log.println(Log.DEBUG, "beat", xStart + " " + yStart, )
         int xCurr = xStart;
         int yCurr = yStart;
         while (xEnd - xCurr != 0) {
@@ -145,23 +148,18 @@ public class Checkers implements Drawable {
 
     public void updateQueens() {
         // BLACKS
-        for (Checker checker : checkersTable[0]) {
-            if (checker == null)
-                continue;
-            if (checker.getColor() == CheckerColor.BLACK) {
-                checker.setState(CheckerState.QUEEN);
-                Log.println(Log.DEBUG, "QUEEN", "QUEEN");
-            }
-        }
+        queensRow(0, CheckerColor.BLACK);
 
         // WHITES
-        for (Checker checker : checkersTable[fieldSize - 1]) {
+        queensRow(fieldSize - 1, CheckerColor.WHITE);
+    }
+
+    private void queensRow(int i, CheckerColor black) {
+        for (Checker checker : checkersTable[i]) {
             if (checker == null)
                 continue;
-            if (checker.getColor() == CheckerColor.WHITE) {
+            if (checker.getColor() == black) {
                 checker.setState(CheckerState.QUEEN);
-                Log.println(Log.DEBUG, "QUEEN", "QUEEN");
-
             }
         }
     }
@@ -281,12 +279,12 @@ public class Checkers implements Drawable {
         }
     }
 
-    private boolean border(int x, int dx) {
-        return border(x + dx);
+    private boolean border(int a, int da) {
+        return border(a + da);
     }
 
-    private boolean border(int x) {
-        return (x >= 0) && x < fieldSize;
+    private boolean border(int a) {
+        return (a >= 0) && a < fieldSize;
     }
 
     public List<Coords> canBeat(Checker checker) {
@@ -295,13 +293,10 @@ public class Checkers implements Drawable {
         int x = coords.x;
         int y = coords.y;
         if (checker.getState() == CheckerState.NORMAL) {
-            if (checker.getColor() == CheckerColor.BLACK) {
-                tryBeat(x, y, -1, 1, checker, res);
-                tryBeat(x, y, 1, 1, checker, res);
-            } else {
-                tryBeat(x, y, -1, -1, checker, res);
-                tryBeat(x, y, 1, -1, checker, res);
-            }
+            tryBeat(x, y, -1, 1, checker, res);
+            tryBeat(x, y, 1, 1, checker, res);
+            tryBeat(x, y, -1, -1, checker, res);
+            tryBeat(x, y, 1, -1, checker, res);
         } else {
             beatInVector(x, y, 1, 1, checker, res);
             beatInVector(x, y, 1, -1, checker, res);
@@ -315,10 +310,19 @@ public class Checkers implements Drawable {
         int cnt = 0;
         for (Checker[] row : checkersTable) {
             for (Checker checker : row) {
-                if (checker!=null && checker.getColor() == color)
+                if (checker != null && checker.getColor() == color)
                     cnt++;
             }
         }
         return cnt;
+    }
+
+    public boolean isDraw(CheckerColor color) {
+        Map<Checker, List<Coords>> available = getAvailableListByColor(color);
+        for (Map.Entry<Checker, List<Coords>> entry : available.entrySet()) {
+            if (!entry.getValue().isEmpty())
+                return false;
+        }
+        return true;
     }
 }

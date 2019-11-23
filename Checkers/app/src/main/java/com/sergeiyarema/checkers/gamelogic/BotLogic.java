@@ -1,4 +1,4 @@
-package com.sergeiyarema.checkers;
+package com.sergeiyarema.checkers.gamelogic;
 
 import android.util.Log;
 import com.sergeiyarema.checkers.field.Coords;

@@ -2,10 +2,8 @@ package com.sergeiyarema.checkers.field;
 
 import android.graphics.Canvas;
 import android.os.Build;
-import android.util.Log;
-import android.view.View;
 import androidx.annotation.RequiresApi;
-import com.sergeiyarema.checkers.BotLogic;
+import com.sergeiyarema.checkers.gamelogic.BotLogic;
 import com.sergeiyarema.checkers.GameView;
 import com.sergeiyarema.checkers.field.checker.Checker;
 import com.sergeiyarema.checkers.field.checker.CheckerColor;
@@ -16,7 +14,6 @@ import com.sergeiyarema.checkers.field.desk.CellState;
 import com.sergeiyarema.checkers.field.desk.Desk;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class FieldController implements Drawable {
@@ -27,7 +24,7 @@ public class FieldController implements Drawable {
     private Checkers checkers;
 
     private Checker selected;
-    private volatile CheckerColor gameState = CheckerColor.BLACK;
+    private CheckerColor gameState = CheckerColor.BLACK;
     private volatile boolean playerBeatRow = false;
     private List<Coords> availableCoords = new ArrayList<>();
     private Coords lastPosition;
@@ -45,6 +42,7 @@ public class FieldController implements Drawable {
         checkers.draw(canvas);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void startBotCycle() {
         while (!Thread.currentThread().isInterrupted()) {
             if (gameState == other(playerSide)) {
@@ -73,7 +71,7 @@ public class FieldController implements Drawable {
                     updateQueens();
                     lastPosition = checkers.find(selected);
 
-                    if (playerBeatRow && canBeatMore(lastPosition)) {
+                    if (playerBeatRow && canBeatMore(tapCoords)) {
                         playerBeatRow = true;
                         trySelectBeatable(lastPosition);
                     } else {
@@ -98,6 +96,7 @@ public class FieldController implements Drawable {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void startBotTurn() {
         boolean botBeatRow = false;
         Coords checkerCoords = BotLogic.chooseChecker(checkers, other(playerSide), 300);
@@ -125,13 +124,14 @@ public class FieldController implements Drawable {
             // update view
             caller.invalidate();
         }
+        unselectAll();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private boolean doPlayerStep(Coords tapCoords) {
-//        Coords oldCoords = checkers.find(selected);
-//        if (oldCoords.equals(tapCoords))
-//            return false;
+        Coords oldCoords = checkers.find(selected);
+        if (oldCoords.equals(tapCoords))
+            return false;
         boolean hasBeaten = checkers.move(selected, tapCoords.x, tapCoords.y);
         return hasBeaten;
     }
@@ -240,6 +240,8 @@ public class FieldController implements Drawable {
             return "!!!White WON!!!";
         if (checkers.count(CheckerColor.WHITE) == 0)
             return "!!!BLACK WON!!!";
+        if (checkers.isDraw(gameState))
+            return "!!!DRAW!!!";
         if (gameState == CheckerColor.WHITE) {
             return "White turn";
         } else return "Black turn";
