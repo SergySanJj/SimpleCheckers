@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import androidx.annotation.RequiresApi;
 import com.sergeiyarema.checkers.BotLogic;
+import com.sergeiyarema.checkers.GameView;
 import com.sergeiyarema.checkers.field.checker.Checker;
 import com.sergeiyarema.checkers.field.checker.CheckerColor;
 import com.sergeiyarema.checkers.field.checker.Checkers;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class FieldController implements Drawable {
     private static final CheckerColor playerSide = CheckerColor.BLACK;
-    private View caller;
+    private GameView caller;
     private int fieldSize;
     private Desk desk;
     private Checkers checkers;
@@ -31,7 +32,7 @@ public class FieldController implements Drawable {
     private List<Coords> availableCoords = new ArrayList<>();
     private Coords lastPosition;
 
-    public FieldController(int fieldSize, View caller) {
+    public FieldController(int fieldSize, GameView caller) {
         this.fieldSize = fieldSize;
         this.caller = caller;
         desk = new Desk(fieldSize);
@@ -45,11 +46,12 @@ public class FieldController implements Drawable {
     }
 
     public void startBotCycle() {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (gameState == other(playerSide)) {
                 if (!playerBeatRow) {
                     startBotTurn();
                     reverseState();
+                    updateQueens();
                 }
             }
         }
@@ -125,7 +127,11 @@ public class FieldController implements Drawable {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private boolean doPlayerStep(Coords tapCoords) {
+//        Coords oldCoords = checkers.find(selected);
+//        if (oldCoords.equals(tapCoords))
+//            return false;
         boolean hasBeaten = checkers.move(selected, tapCoords.x, tapCoords.y);
         return hasBeaten;
     }
@@ -193,30 +199,30 @@ public class FieldController implements Drawable {
             return CheckerColor.BLACK;
     }
 
-    public void unselectAll() {
+    private void unselectAll() {
         selected = null;
         availableCoords.clear();
         desk.unselect();
     }
 
-    public void activateAvailable(Checker checker) {
-        if (checker == null)
-            return;
-        availableCoords.clear();
-        desk.unselect();
+    private void activateAvailable(Checker checker) {
+        if (activationPreparation(checker)) return;
         availableCoords = checkers.buildAvailable(checker);
-
         setActiveToAvailable();
     }
 
     private void activateAvailableBeatable(Checker checker) {
+        if (activationPreparation(checker)) return;
+        availableCoords = checkers.canBeat(checker);
+        setActiveToAvailable();
+    }
+
+    private boolean activationPreparation(Checker checker) {
         if (checker == null)
-            return;
+            return true;
         availableCoords.clear();
         desk.unselect();
-        availableCoords = checkers.canBeat(checker);
-
-        setActiveToAvailable();
+        return false;
     }
 
     private void setActiveToAvailable() {
@@ -227,5 +233,15 @@ public class FieldController implements Drawable {
 
     private void updateQueens() {
         checkers.updateQueens();
+    }
+
+    public String getStatus() {
+        if (checkers.count(CheckerColor.BLACK) == 0)
+            return "!!!White WON!!!";
+        if (checkers.count(CheckerColor.WHITE) == 0)
+            return "!!!BLACK WON!!!";
+        if (gameState == CheckerColor.WHITE) {
+            return "White turn";
+        } else return "Black turn";
     }
 }

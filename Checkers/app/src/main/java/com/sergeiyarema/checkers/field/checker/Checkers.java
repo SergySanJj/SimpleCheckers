@@ -310,4 +310,15 @@ public class Checkers implements Drawable {
         }
         return res;
     }
+
+    public int count(CheckerColor color) {
+        int cnt = 0;
+        for (Checker[] row : checkersTable) {
+            for (Checker checker : row) {
+                if (checker!=null && checker.getColor() == color)
+                    cnt++;
+            }
+        }
+        return cnt;
+    }
 }

@@ -21,7 +21,17 @@
 
     </LinearLayout>
 
-    <Space android:layout_width="0dp" android:layout_height="100dp">
+    <Space android:layout_width="0dp" android:layout_height="20dp">
+    </Space>
+
+    <TextView
+            android:id="@+id/game_status"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:textAlignment="center"
+            android:textSize="20pt"/>
+
+    <Space android:layout_width="0dp" android:layout_height="20dp">
     </Space>
 
     <LinearLayout
