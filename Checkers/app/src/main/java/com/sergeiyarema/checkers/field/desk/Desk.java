@@ -59,6 +59,10 @@ public class Desk implements Drawable {
         return cellSize;
     }
 
+    public void setCellSize(int size) {
+        cellSize = size;
+    }
+
     public void unselectAll() {
         for (Cell[] cellRow : cells) {
             for (Cell cell : cellRow) {
@@ -77,5 +81,9 @@ public class Desk implements Drawable {
 
     private boolean border(int a) {
         return (a >= 0) && a < fieldSize;
+    }
+
+    public int getFieldSize() {
+        return fieldSize;
     }
 }

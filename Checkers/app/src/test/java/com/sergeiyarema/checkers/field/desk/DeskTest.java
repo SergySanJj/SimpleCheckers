@@ -1,10 +1,6 @@
-package field.desk;
+package com.sergeiyarema.checkers.field.desk;
 
 import com.sergeiyarema.checkers.field.Coords;
-import com.sergeiyarema.checkers.field.desk.Cell;
-import com.sergeiyarema.checkers.field.desk.CellColor;
-import com.sergeiyarema.checkers.field.desk.CellState;
-import com.sergeiyarema.checkers.field.desk.Desk;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -14,11 +14,7 @@ public class BotLogic {
 
     // Returns null if no available
     public static Coords chooseChecker(Checkers checkers, CheckerColor botColor, long delay) {
-        try {
-            Thread.sleep(delay);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        waitFor(delay);
         Map<Checker, List<Coords>> available = checkers.getAvailableListByColor(botColor);
         Coords res = null;
         for (Map.Entry<Checker, List<Coords>> entry : available.entrySet()) {
@@ -31,15 +27,19 @@ public class BotLogic {
     }
 
     public static Coords chooseMove(Checkers checkers, Checker checker, long delay) {
+        waitFor(delay);
+        List<Coords> available = checkers.buildAvailable(checker);
+        if (available.isEmpty())
+            return null;
+        return available.get(random.nextInt(available.size()));
+    }
+
+    private static void waitFor(long delay) {
         try {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        List<Coords> available = checkers.buildAvailable(checker);
-        if (available.isEmpty())
-            return null;
-        return available.get(random.nextInt(available.size()));
     }
 
 

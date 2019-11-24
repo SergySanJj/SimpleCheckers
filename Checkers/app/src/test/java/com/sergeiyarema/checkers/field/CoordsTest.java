@@ -1,6 +1,5 @@
-package field;
+package com.sergeiyarema.checkers.field;
 
-import com.sergeiyarema.checkers.field.Coords;
 import org.junit.Assert;
 import org.junit.Test;
 

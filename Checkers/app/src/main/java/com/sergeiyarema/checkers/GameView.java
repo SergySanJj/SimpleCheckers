@@ -18,7 +18,7 @@ public class GameView extends View {
     private Context context;
     private Thread botThread;
 
-    public GameView(final Context context) {
+    public GameView(Context context) {
         super(context);
         this.context = context;
         fieldController = new FieldController(FIELD_SIZE, this);
@@ -29,7 +29,7 @@ public class GameView extends View {
 
     private void startBotThread() {
         botThread = new Thread(new Runnable() {
-            
+
             @Override
             public void run() {
                 try {
@@ -75,6 +75,10 @@ public class GameView extends View {
     public Thread getBotThread() {
         return botThread;
     }
+
+    public FieldController getFieldController() {
+        return fieldController;
+    }
 }
 
 class OnTouchTask implements Runnable {
@@ -85,9 +89,11 @@ class OnTouchTask implements Runnable {
         this.event = event;
         this.fieldController = fieldController;
     }
-    
+
     @Override
     public void run() {
+        if (event == null)
+            return;
         if (event.getAction() == MotionEvent.ACTION_UP) {
             fieldController.activatePlayer(event.getX(), event.getY());
         }

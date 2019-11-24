@@ -16,9 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FieldController implements Drawable {
-    private static final CheckerColor playerSide = CheckerColor.BLACK;
+    public static final CheckerColor playerSide = CheckerColor.BLACK;
     private GameView caller;
     private int fieldSize;
+
     private Desk desk;
     private Checkers checkers;
 
@@ -27,6 +28,8 @@ public class FieldController implements Drawable {
     private volatile boolean playerBeatRow = false;
     private List<Coords> availableCoords = new ArrayList<>();
     private Coords lastPosition;
+
+    private int botDelay = 300;
 
     FieldController(int fieldSize) {
         this.fieldSize = fieldSize;
@@ -68,7 +71,7 @@ public class FieldController implements Drawable {
             if (selected == null) {
                 trySelect(tapCoords);
                 // update view
-                caller.invalidate();
+                callUpdate();
             } else {
 
                 if (coordsInAvailableCells(tapCoords)) {
@@ -85,11 +88,11 @@ public class FieldController implements Drawable {
                     }
                 } else {
                     unselectAll();
-                    caller.invalidate();
+                    callUpdate();
                     return;
                 }
                 // update view
-                caller.invalidate();
+                callUpdate();
 
                 if (!playerBeatRow) {
                     unselectAll();
@@ -101,34 +104,41 @@ public class FieldController implements Drawable {
         }
     }
 
-    private void startBotTurn() {
+    public void startBotTurn() {
         boolean botBeatRow = false;
-        Coords checkerCoords = BotLogic.chooseChecker(checkers, other(playerSide), 300);
+        Coords checkerCoords = BotLogic.chooseChecker(checkers, other(playerSide), botDelay);
         if (checkerCoords == null)
             return;
         Checker checkerBot = checkers.getChecker(checkerCoords);
         trySelect(checkerCoords);
         // update view
-        caller.invalidate();
-        Coords moveCoords = BotLogic.chooseMove(checkers, checkerBot, 300);
+        callUpdate();
+        Coords moveCoords = BotLogic.chooseMove(checkers, checkerBot, botDelay);
+        if (moveCoords == null)
+            return;
         botBeatRow = checkers.move(checkerBot, moveCoords.x, moveCoords.y);
         unselectAll();
         // update view
-        caller.invalidate();
+        callUpdate();
 
         while (botBeatRow && canBeatMore(moveCoords)) {
             unselectAll();
             trySelectBeatable(moveCoords);
             // update view
-            caller.invalidate();
-            moveCoords = BotLogic.chooseMove(checkers, checkerBot, 300);
+            callUpdate();
+            moveCoords = BotLogic.chooseMove(checkers, checkerBot, botDelay);
             if (moveCoords != null)
                 botBeatRow = checkers.move(checkerBot, moveCoords.x, moveCoords.y);
             else botBeatRow = false;
             // update view
-            caller.invalidate();
+            callUpdate();
         }
         unselectAll();
+    }
+
+    public void callUpdate() {
+        if (caller != null)
+            caller.invalidate();
     }
 
     private boolean doPlayerStep(Coords tapCoords) {
@@ -139,7 +149,7 @@ public class FieldController implements Drawable {
         return hasBeaten;
     }
 
-    private boolean canBeatMore(Coords lastPosition) {
+    public boolean canBeatMore(Coords lastPosition) {
         if (lastPosition == null)
             return false;
         Checker checker = checkers.getChecker(lastPosition);
@@ -241,11 +251,67 @@ public class FieldController implements Drawable {
         if (checkers.count(CheckerColor.BLACK) == 0)
             return "!!!White WON!!!";
         if (checkers.count(CheckerColor.WHITE) == 0)
-            return "!!!BLACK WON!!!";
+            return "!!!Black WON!!!";
         if (checkers.isDraw(gameState))
             return "!!!DRAW!!!";
         if (gameState == CheckerColor.WHITE) {
             return "White turn";
         } else return "Black turn";
+    }
+
+    public int getFieldSize() {
+        return fieldSize;
+    }
+
+    public void setFieldSize(int fieldSize) {
+        this.fieldSize = fieldSize;
+    }
+
+    public Desk getDesk() {
+        return desk;
+    }
+
+    public void setDesk(Desk desk) {
+        this.desk = desk;
+    }
+
+    public Checkers getCheckers() {
+        return checkers;
+    }
+
+    public void setCheckers(Checkers checkers) {
+        this.checkers = checkers;
+    }
+
+    public Checker getSelected() {
+        return selected;
+    }
+
+    public void setSelected(Checker selected) {
+        this.selected = selected;
+    }
+
+    public CheckerColor getGameState() {
+        return gameState;
+    }
+
+    public void setGameState(CheckerColor gameState) {
+        this.gameState = gameState;
+    }
+
+    public void setBotDelay(int botDelay) {
+        this.botDelay = botDelay;
+    }
+
+    public static CheckerColor getPlayerSide() {
+        return playerSide;
+    }
+
+    public boolean isPlayerBeatRow() {
+        return playerBeatRow;
+    }
+
+    public List<Coords> getAvailableCoords() {
+        return availableCoords;
     }
 }
