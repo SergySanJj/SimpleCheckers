@@ -1,9 +1,10 @@
-package com.sergeiyarema.checkers.field.checker;
+package field.checker;
 
+import com.sergeiyarema.checkers.field.checker.Checker;
+import com.sergeiyarema.checkers.field.checker.CheckerColor;
+import com.sergeiyarema.checkers.field.checker.CheckerState;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class CheckerTest {
 

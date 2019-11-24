@@ -1,9 +1,10 @@
-package com.sergeiyarema.checkers.field.desk;
+package field.desk;
 
+import com.sergeiyarema.checkers.field.desk.Cell;
+import com.sergeiyarema.checkers.field.desk.CellColor;
+import com.sergeiyarema.checkers.field.desk.CellState;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class CellTest {
 

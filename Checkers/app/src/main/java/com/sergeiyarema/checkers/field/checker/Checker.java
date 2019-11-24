@@ -13,7 +13,7 @@ public class Checker {
     public static final int whiteNormal = Color.rgb(200, 200, 200);
     public static final int blackNormal = Color.rgb(230, 20, 20);
 
-    Checker(CheckerColor checkerColor) {
+    public Checker(CheckerColor checkerColor) {
         color = checkerColor;
         paint = new Paint();
         paint.setStyle(Paint.Style.FILL);

@@ -1,15 +1,15 @@
-package com.sergeiyarema.checkers.field.checker;
+package field.checker;
 
-import android.widget.LinearLayout;
 import com.sergeiyarema.checkers.field.Coords;
+import com.sergeiyarema.checkers.field.checker.Checker;
+import com.sergeiyarema.checkers.field.checker.CheckerColor;
+import com.sergeiyarema.checkers.field.checker.Checkers;
 import com.sergeiyarema.checkers.gamelogic.BotLogic;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 public class CheckersTest {
     private int[][] clearTable = new int[][]{
