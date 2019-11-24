@@ -1,8 +1,7 @@
 package com.sergeiyarema.checkers.field;
 
 import android.graphics.Canvas;
-import android.os.Build;
-import androidx.annotation.RequiresApi;
+
 import com.sergeiyarema.checkers.gamelogic.BotLogic;
 import com.sergeiyarema.checkers.GameView;
 import com.sergeiyarema.checkers.field.checker.Checker;
@@ -29,6 +28,13 @@ public class FieldController implements Drawable {
     private List<Coords> availableCoords = new ArrayList<>();
     private Coords lastPosition;
 
+    FieldController(int fieldSize) {
+        this.fieldSize = fieldSize;
+        caller = null;
+        desk = new Desk(fieldSize);
+        checkers = new Checkers(fieldSize);
+    }
+
     public FieldController(int fieldSize, GameView caller) {
         this.fieldSize = fieldSize;
         this.caller = caller;
@@ -42,7 +48,7 @@ public class FieldController implements Drawable {
         checkers.draw(canvas);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+
     public void startBotCycle() {
         while (!Thread.currentThread().isInterrupted()) {
             if (gameState == other(playerSide)) {
@@ -55,7 +61,6 @@ public class FieldController implements Drawable {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void activatePlayer(float x, float y) {
         if (gameState == playerSide) {
             Coords tapCoords = Coords.toCoords(x, y, fieldSize, desk.getCellSize());
@@ -96,7 +101,6 @@ public class FieldController implements Drawable {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void startBotTurn() {
         boolean botBeatRow = false;
         Coords checkerCoords = BotLogic.chooseChecker(checkers, other(playerSide), 300);
@@ -127,7 +131,6 @@ public class FieldController implements Drawable {
         unselectAll();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private boolean doPlayerStep(Coords tapCoords) {
         Coords oldCoords = checkers.find(selected);
         if (oldCoords.equals(tapCoords))
@@ -144,7 +147,6 @@ public class FieldController implements Drawable {
         return !beatable.isEmpty();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private boolean coordsInAvailableCells(Coords tapCoords) {
         if (tapCoords == null)
             return false;
@@ -202,7 +204,7 @@ public class FieldController implements Drawable {
     private void unselectAll() {
         selected = null;
         availableCoords.clear();
-        desk.unselect();
+        desk.unselectAll();
     }
 
     private void activateAvailable(Checker checker) {
@@ -221,7 +223,7 @@ public class FieldController implements Drawable {
         if (checker == null)
             return true;
         availableCoords.clear();
-        desk.unselect();
+        desk.unselectAll();
         return false;
     }
 

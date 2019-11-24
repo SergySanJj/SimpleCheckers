@@ -29,7 +29,7 @@ public class GameView extends View {
 
     private void startBotThread() {
         botThread = new Thread(new Runnable() {
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            
             @Override
             public void run() {
                 try {
@@ -44,7 +44,6 @@ public class GameView extends View {
 
     private void assignTouchListener() {
         setOnTouchListener(new OnTouchListener() {
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public boolean onTouch(View v, MotionEvent event) {
                 Thread th = new Thread(new OnTouchTask(event, fieldController));
                 th.start();
@@ -86,8 +85,7 @@ class OnTouchTask implements Runnable {
         this.event = event;
         this.fieldController = fieldController;
     }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    
     @Override
     public void run() {
         if (event.getAction() == MotionEvent.ACTION_UP) {

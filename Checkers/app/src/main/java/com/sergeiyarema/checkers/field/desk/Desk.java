@@ -50,6 +50,8 @@ public class Desk implements Drawable {
     }
 
     public Cell getCell(Coords coords) {
+        if (!border(coords))
+            return null;
         return cells[coords.x][coords.y];
     }
 
@@ -57,11 +59,23 @@ public class Desk implements Drawable {
         return cellSize;
     }
 
-    public void unselect() {
+    public void unselectAll() {
         for (Cell[] cellRow : cells) {
             for (Cell cell : cellRow) {
                 cell.setCurrentState(CellState.IDLE);
             }
         }
+    }
+
+    private boolean border(Coords coords) {
+        return border(coords.x) && border(coords.y);
+    }
+
+    private boolean border(int a, int da) {
+        return border(a + da);
+    }
+
+    private boolean border(int a) {
+        return (a >= 0) && a < fieldSize;
     }
 }

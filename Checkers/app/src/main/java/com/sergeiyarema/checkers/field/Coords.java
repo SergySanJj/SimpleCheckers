@@ -21,22 +21,18 @@ public class Coords {
         return res;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Coords))
             return false;
-        if (o.hashCode() == this.hashCode()) {
-            return true;
-        }
 
         Coords coords = (Coords) (o);
         return coords.x == x && coords.y == y;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        return x + y * 1000;
     }
 }

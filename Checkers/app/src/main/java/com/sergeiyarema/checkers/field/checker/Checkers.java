@@ -4,8 +4,6 @@ import android.graphics.Canvas;
 
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.Build;
-import androidx.annotation.RequiresApi;
 import com.sergeiyarema.checkers.field.Coords;
 import com.sergeiyarema.checkers.field.Drawable;
 
@@ -86,13 +84,6 @@ public class Checkers implements Drawable {
         }
     }
 
-    public Checker getChecker(float x, float y) {
-        Coords coords = Coords.toCoords(x, y, fieldSize, cellSize);
-        if (coords == null)
-            return null;
-        return checkersTable[coords.y][coords.x];
-    }
-
     public Checker getChecker(int x, int y) {
         if (border(x) && border(y))
             return checkersTable[y][x];
@@ -119,7 +110,6 @@ public class Checkers implements Drawable {
         checkersTable[y][x] = null;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean move(Checker checker, int x, int y) {
         boolean haveBeaten = false;
         Coords found = find(checker);
@@ -132,7 +122,7 @@ public class Checkers implements Drawable {
         return haveBeaten;
     }
 
-    public boolean beat(int xStart, int yStart,
+    private boolean beat(int xStart, int yStart,
                         int xEnd, int yEnd) {
         boolean haveBeaten = false;
         int xDir = xEnd - xStart;
@@ -151,6 +141,10 @@ public class Checkers implements Drawable {
             checkersTable[yCurr][xCurr] = null;
         }
         return haveBeaten;
+    }
+
+    public void setCheckerSize(int size) {
+        checkerSize = size;
     }
 
     public int getCheckerSize() {
@@ -377,5 +371,31 @@ public class Checkers implements Drawable {
             }
         }
         return res;
+    }
+
+    public boolean sameAs(Checkers other) {
+        if (fieldSize != other.fieldSize)
+            return false;
+        for (int i = 0; i < fieldSize; i++) {
+            for (int j = 0; j < fieldSize; j++) {
+                if (checkersTable[i][j] == null) {
+                    if (other.checkersTable[i][j] == null)
+                        continue;
+                    else return false;
+                } else if (other.checkersTable[i][j] == null) {
+                    if (checkersTable[i][j] == null)
+                        continue;
+                    else return false;
+                }
+
+                if (checkersTable[i][j].getColor() !=
+                        other.checkersTable[i][j].getColor() ||
+                        checkersTable[i][j].getState() !=
+                                other.checkersTable[i][j].getState())
+                    return false;
+
+            }
+        }
+        return true;
     }
 }

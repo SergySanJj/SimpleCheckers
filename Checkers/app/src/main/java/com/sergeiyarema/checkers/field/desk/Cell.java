@@ -5,16 +5,15 @@ import android.graphics.Paint;
 
 
 public class Cell {
-
-
     private CellColor cellColor;
     private int colorIdle;
-    private int colorActive = Color.rgb(10, 250, 20);
+
     private Paint paint;
     private CellState currentState = CellState.IDLE;
 
-    private static final int black = Color.rgb(50, 50, 50);
-    private static final int white = Color.WHITE;
+    public static final int black = Color.rgb(50, 50, 50);
+    public static final int white = Color.WHITE;
+    public static final int colorActive = Color.rgb(10, 250, 20);
 
     public Cell(CellColor color) {
         cellColor = color;
