@@ -3,20 +3,24 @@ package com.sergeiyarema.checkers;
 
 import android.content.Context;
 import android.graphics.*;
-import android.os.Build;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import androidx.annotation.RequiresApi;
 import com.sergeiyarema.checkers.field.FieldController;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class GameView extends View {
+    private ExecutorService executor = newFixedThreadPool(5);
+
     private static final int FIELD_SIZE = 8;
     private FieldController fieldController;
     private Context context;
-    private Thread botThread;
+    private Future botFuture;
 
     public GameView(Context context) {
         super(context);
@@ -28,7 +32,7 @@ public class GameView extends View {
     }
 
     private void startBotThread() {
-        botThread = new Thread(new Runnable() {
+        botFuture = executor.submit(new Runnable() {
 
             @Override
             public void run() {
@@ -39,17 +43,15 @@ public class GameView extends View {
                 }
             }
         });
-        botThread.start();
     }
 
     private void assignTouchListener() {
         setOnTouchListener(new OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
-                Thread th = new Thread(new OnTouchTask(event, fieldController));
-                th.start();
+                Future touchFuture = executor.submit(new OnTouchTask(event, fieldController));
                 try {
-                    th.join();
-                } catch (InterruptedException e) {
+                    touchFuture.get();
+                } catch (Exception e) {
                     Log.e("Touch exception", Arrays.toString(e.getStackTrace()));
                     Thread.currentThread().interrupt();
                 }
@@ -72,8 +74,8 @@ public class GameView extends View {
         fieldController.draw(canvas);
     }
 
-    public Thread getBotThread() {
-        return botThread;
+    public Future getBotFuture() {
+        return botFuture;
     }
 
     public FieldController getFieldController() {

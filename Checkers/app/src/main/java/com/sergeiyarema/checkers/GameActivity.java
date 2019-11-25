@@ -40,8 +40,8 @@ public class GameActivity extends Activity {
     }
 
     private void startNewGame() {
-        if (gameView != null && gameView.getBotThread() != null) {
-            gameView.getBotThread().interrupt();
+        if (gameView != null && gameView.getBotFuture() != null) {
+            gameView.getBotFuture().cancel(true);
         }
         gameView = new GameView(this);
         gameLayout.removeAllViews();
