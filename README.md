@@ -1,5 +1,5 @@
 # Simple Checkers
 
-An Android based game, developed by using native Android tools.
+This is an Android based game where you can play checkers with bot, developed by using native Android tools.
 
 ## GUI examples
